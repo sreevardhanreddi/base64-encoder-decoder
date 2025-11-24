@@ -26,12 +26,6 @@ Simply open `index.html` in your browser. No installation or build process neede
 - TailwindCSS (Stone theme for dark mode)
 - Vanilla JavaScript
 
-## GitHub Description
-
-```
-Simple Base64 encoder/decoder with dark mode, multiple iteration support, built with HTMX and TailwindCSS
-```
-
 ---
 
 **License:** MIT  
