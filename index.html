@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base64 Encoder/Decoder</title>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+</head>
+
+<body class="bg-gray-50 dark:bg-stone-900 transition-colors duration-200 min-h-screen">
+  <div class="container mx-auto px-4 py-4 max-w-8xl">
+    <!-- Header with Theme Toggle -->
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Base64 Encoder/Decoder</h1>
+
+      <!-- Theme Toggle Buttons -->
+      <div class="flex gap-2 bg-white dark:bg-stone-800 p-1 rounded-lg shadow">
+        <button onclick="setTheme('light')" id="light-btn"
+          class="px-4 py-2 rounded transition-colors text-sm font-medium">
+          ☀️ Light
+        </button>
+        <button onclick="setTheme('dark')" id="dark-btn"
+          class="px-4 py-2 rounded transition-colors text-sm font-medium">
+          🌙 Dark
+        </button>
+        <button onclick="setTheme('system')" id="system-btn"
+          class="px-4 py-2 rounded transition-colors text-sm font-medium">
+          💻 System
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bg-white dark:bg-stone-800 rounded-lg shadow-lg p-6">
+      <!-- Controls -->
+      <div class="mb-6 flex gap-4 items-end flex-wrap">
+        <div class="flex-1 min-w-[200px]">
+          <label for="iterations" class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+            Iterations
+          </label>
+          <select id="iterations"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="encodeText()"
+            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+            Encode →
+          </button>
+          <button onclick="decodeText()"
+            class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+            ← Decode
+          </button>
+          <button onclick="clearAll()"
+            class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Text Areas -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Input Text Area -->
+        <div>
+          <label for="input-text" class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+            Input Text
+          </label>
+          <textarea id="input-text" rows="12" placeholder="Enter text to encode or paste base64 to decode..."
+            class="w-full px-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none"></textarea>
+        </div>
+
+        <!-- Output Text Area -->
+        <div>
+          <label for="output-text" class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+            Output Text
+          </label>
+          <textarea id="output-text" rows="12" placeholder="Result will appear here..."
+            class="w-full px-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none"
+            readonly></textarea>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="error-message" class="mt-4 hidden">
+        <div
+          class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+          <span id="error-text"></span>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="mt-6 text-sm text-gray-600 dark:text-stone-400">
+        <p><strong>Tip:</strong> Select the number of iterations to encode or decode multiple times. Each iteration
+          applies the operation to the previous result.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme Management
+    function setTheme(theme) {
+      localStorage.setItem('theme', theme);
+      applyTheme(theme);
+      updateThemeButtons(theme);
+    }
+
+    function applyTheme(theme) {
+      if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    function updateThemeButtons(theme) {
+      const buttons = {
+        'light': document.getElementById('light-btn'),
+        'dark': document.getElementById('dark-btn'),
+        'system': document.getElementById('system-btn')
+      };
+
+      Object.keys(buttons).forEach(key => {
+        if (key === theme) {
+          buttons[key].classList.add('bg-blue-500', 'text-white');
+          buttons[key].classList.remove('text-gray-700', 'dark:text-stone-300', 'hover:bg-gray-100', 'dark:hover:bg-stone-700');
+        } else {
+          buttons[key].classList.remove('bg-blue-500', 'text-white');
+          buttons[key].classList.add('text-gray-700', 'dark:text-stone-300', 'hover:bg-gray-100', 'dark:hover:bg-stone-700');
+        }
+      });
+    }
+
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    applyTheme(savedTheme);
+    updateThemeButtons(savedTheme);
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      const currentTheme = localStorage.getItem('theme') || 'system';
+      if (currentTheme === 'system') {
+        applyTheme('system');
+      }
+    });
+
+    // Base64 Functions
+    function showError(message) {
+      document.getElementById('error-text').textContent = message;
+      document.getElementById('error-message').classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('error-message').classList.add('hidden');
+      }, 5000);
+    }
+
+    function encodeText() {
+      const input = document.getElementById('input-text').value;
+      const iterations = parseInt(document.getElementById('iterations').value);
+
+      if (!input) {
+        showError('Please enter some text to encode');
+        return;
+      }
+
+      try {
+        let result = input;
+        for (let i = 0; i < iterations; i++) {
+          result = btoa(result);
+        }
+        document.getElementById('output-text').value = result;
+      } catch (error) {
+        showError('Encoding error: ' + error.message);
+      }
+    }
+
+    function decodeText() {
+      const input = document.getElementById('input-text').value;
+      const iterations = parseInt(document.getElementById('iterations').value);
+
+      if (!input) {
+        showError('Please enter some base64 text to decode');
+        return;
+      }
+
+      try {
+        let result = input;
+        for (let i = 0; i < iterations; i++) {
+          result = atob(result);
+        }
+        document.getElementById('output-text').value = result;
+      } catch (error) {
+        showError('Decoding error: Invalid base64 string or incorrect number of iterations');
+      }
+    }
+
+    function clearAll() {
+      document.getElementById('input-text').value = '';
+      document.getElementById('output-text').value = '';
+      document.getElementById('iterations').value = '1';
+    }
+
+    // Allow Enter key in textarea (Shift+Enter for encode)
+    document.getElementById('input-text').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.shiftKey) {
+        e.preventDefault();
+        encodeText();
+      }
+    });
+  </script>
+</body>
+
+</html>
